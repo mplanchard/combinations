@@ -69,12 +69,13 @@ fn take_from<T>(items: &[T], take: u64) -> Vec<&[T]> {
         vec![items]
     }
     else {
-        items.into_iter().enumerate().map(|(index, _)| {
-            // combine first item with all unique combinations from all other items
-            let index_item = &items[index..index + 1];
-            let rest = &items[index + 1..item_len];
-            take_from(rest, take).into_iter()
-        }).collect()
+        vec![items]
+        //items.into_iter().enumerate().map(|(index, _)| {
+            //// combine first item with all unique combinations from all other items
+            //let index_item = &items[index..index + 1];
+            //let rest = &items[index + 1..item_len];
+            //take_from(rest, take).into_iter()
+        //}).collect()
     }
 }
 
