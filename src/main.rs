@@ -1,4 +1,3 @@
-
 #[macro_use]
 extern crate lazy_static;
 extern crate num;
@@ -60,22 +59,50 @@ fn num_combinations(num_items: u64, take: u64) -> BigUint {
 }
 
 
-fn take_from<T>(items: &[T], take: u64) -> Vec<&[T]> {
+fn print<T: Iterator + std::fmt::Debug>(thing: T) -> T{
+    println!("{:?}", thing);
+    thing
+}
+
+
+fn take_from<T: Clone + std::fmt::Debug>(items: &[T], take: u64) -> Vec<Vec<T>> {
     let item_len = items.len();
     if take == 1 {
-        items.into_iter().map(|item| slice::from_ref(item)).collect()
+        items.iter().map(|item| vec![item.clone()]).collect()
     }
     else if take == item_len  as u64 {
-        vec![items]
+        vec![items.iter().map(|i| i.clone()).collect()]
     }
     else {
-        vec![items]
-        //items.into_iter().enumerate().map(|(index, _)| {
-            //// combine first item with all unique combinations from all other items
-            //let index_item = &items[index..index + 1];
-            //let rest = &items[index + 1..item_len];
-            //take_from(rest, take).into_iter()
-        //}).collect()
+        // vec![items]
+        println!("items: {:?}", items);
+        items
+            .into_iter()
+            .enumerate()
+            .map(|(index, _)| {
+                // combine first item with all unique combinations from all other items
+                println!("index: {}", index);
+                let index_item = &items[index..index + 1];
+                let rest = &items[index + 1..item_len];
+                println!("index_item: {:?}", index_item);
+                println!("rest: {:?}", rest);
+                take_from(rest, take - 1)  // returns a vec of unique slices
+                    .into_iter()
+                    // combine unique slices with first integer item, yielding vectors of integers
+                    .map(|uq_slice| {
+                        let val = index_item
+                            .iter()
+                            .chain(uq_slice.iter())
+                            .cloned()
+                            .collect::<Vec<T>>();
+                        println!("val: {:?}", val);
+                        val
+                    })
+                    // collect slices into a vector
+                    .collect::<Vec<Vec<T>>>()
+            })
+            .flatten()
+            .collect::<Vec<Vec<T>>>()
     }
 }
 
@@ -86,11 +113,16 @@ fn main() {
     // let items = vec![1..args[1].parse::<u32>().unwrap()];
     // println!("{:?}", items);
     // let cached_fn = memoize_num_combs(num_combinations);
-    println!(
-        "{:?}", 
-        num_combinations(
-            args[1].parse::<u64>().unwrap(), 
-            args[2].parse::<u64>().unwrap()
-        ).to_str_radix(10),
-    );
+    //println!(
+        //"{:?}", 
+        //num_combinations(
+            //args[1].parse::<u64>().unwrap(), 
+            //args[2].parse::<u64>().unwrap()
+        //).to_str_radix(10),
+    //);
+    let slice_one: &[i32] = &[1, 2, 3, 4, 5];
+    let slice_two: &[i32] = &[3, 4];
+    let items: Vec<u64> = (0..args[1].parse::<u64>().unwrap()).collect();
+    let take = args[2].parse::<u64>().unwrap();
+    println!("final: {:?}", take_from(&items, take));
 }
